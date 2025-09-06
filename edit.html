@@ -1,6 +1,10 @@
 <!-- =========================
-= edit.html (로컬 전용)
+쭌또카트 (로컬 전용)
+- 동기화/비밀번호 제거
+- localStorage만 사용
+- 파일: edit.html
 ========================= -->
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -18,6 +22,7 @@
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px;margin:12px 0}
     .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .muted{color:#6b7280;font-size:12px}
+    .grow{flex:1}
     input,button{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:10px 12px;font-size:14px}
     button{cursor:pointer}
     .primary{background:#166534;color:#fff;border-color:#166534}
@@ -43,7 +48,6 @@
     <div class="row" style="gap:10px">
       <a href="index.html" class="back">← 메인</a>
       <strong>편집</strong>
-      <span class="muted">Local-only</span>
     </div>
     <div class="row" style="gap:8px">
       <button id="exportBtn">내보내기</button>
@@ -58,7 +62,7 @@
   <section class="card">
     <h3>마켓 관리</h3>
     <div class="row">
-      <input id="marketInput" placeholder="새 마켓 이름 (예: Walmart)" />
+      <input id="marketInput" class="grow" placeholder="새 마켓 이름 (예: Walmart)" />
       <button id="addMarketBtn" class="primary">＋ 마켓 추가</button>
     </div>
     <div id="marketList" class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"></div>
