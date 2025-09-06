@@ -1,0 +1,307 @@
+<!-- =========================
+= edit.html (로컬 전용)
+========================= -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>쭌또카트 • 편집</title>
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" sizes="192x192" href="icon.png">
+  <meta name="theme-color" content="#166534">
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Apple SD Gothic Neo,'Malgun Gothic',sans-serif;margin:0;background:#f5f6f8;color:#111}
+    header.card{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #e5e7eb}
+    .wrap{max-width:960px;margin:0 auto;padding:12px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px;margin:12px 0}
+    .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .muted{color:#6b7280;font-size:12px}
+    input,button{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:10px 12px;font-size:14px}
+    button{cursor:pointer}
+    .primary{background:#166534;color:#fff;border-color:#166534}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid #cbd5e1;background:#f8fafc;cursor:pointer;font-size:12px}
+    .chip.active{border-color:#16a34a;background:#ecfdf5}
+    .list{display:grid;grid-template-columns:1fr;gap:8px}
+    @media(min-width:720px){.list{grid-template-columns:1fr 1fr}}
+    .item{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e5e7eb;border-radius:12px;background:#fff}
+    .badges{display:flex;gap:6px;flex-wrap:wrap}
+    .badge{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid #d1d5db;background:#f3f4f6;color:#374151}
+    a.back{font-size:12px;border:1px solid #d1d5db;border-radius:10px;padding:6px 10px;text-decoration:none;color:#374151;background:#fff}
+    dialog{border:none;border-radius:16px;max-width:520px;width:calc(100% - 24px);padding:0;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+    dialog::backdrop{background:rgba(0,0,0,.25)}
+    .dlg-body{padding:16px}
+    .dlg-head{padding:14px 16px;border-bottom:1px solid #e5e7eb;font-weight:600}
+    .dlg-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid #e5e7eb;background:#f8fafc;border-radius:0 0 16px 16px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+<header class="card">
+  <div class="wrap row" style="justify-content:space-between">
+    <div class="row" style="gap:10px">
+      <a href="index.html" class="back">← 메인</a>
+      <strong>편집</strong>
+      <span class="muted">Local-only</span>
+    </div>
+    <div class="row" style="gap:8px">
+      <button id="exportBtn">내보내기</button>
+      <input id="importFile" type="file" accept="application/json" style="display:none">
+      <button id="importBtn">가져오기</button>
+      <button id="saveBtn" class="primary">저장하고 나가기</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <h3>마켓 관리</h3>
+    <div class="row">
+      <input id="marketInput" placeholder="새 마켓 이름 (예: Walmart)" />
+      <button id="addMarketBtn" class="primary">＋ 마켓 추가</button>
+    </div>
+    <div id="marketList" class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+    <div class="muted">칩을 클릭하면 이름 변경, 휴지통을 누르면 삭제됩니다.</div>
+  </section>
+
+  <section class="card">
+    <h3>항목 추가</h3>
+    <div class="row">
+      <input id="itemInput" class="grow" placeholder="예: 우유, 계란, 바나나 (쉼표로 여러 개) — 여기에 입력하면 아래 목록이 실시간 필터링됩니다" />
+      <button id="addItemBtn" class="primary">＋ 추가</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <span class="muted">마켓 선택:</span>
+      <div id="marketChipsAdd" class="row" style="gap:6px;flex-wrap:wrap"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>항목 관리</h3>
+    <div id="items" class="list"></div>
+  </section>
+</main>
+
+<template id="itemTpl">
+  <div class="item">
+    <div class="grow">
+      <strong class="name"></strong>
+      <div class="badges" style="margin-top:6px"></div>
+    </div>
+    <button class="edit">✏️</button>
+    <button class="del">🗑</button>
+  </div>
+</template>
+
+<dialog id="itemEditor">
+  <div class="dlg-head">항목 편집</div>
+  <div class="dlg-body">
+    <div class="row" style="gap:10px;flex-direction:column;align-items:stretch">
+      <div>
+        <label class="muted">이름</label>
+        <input id="ieName" placeholder="항목 이름" />
+      </div>
+      <div>
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <label class="muted">마켓</label>
+          <button id="ieSelectAll" type="button" style="font-size:12px;border:1px solid #d1d5db;border-radius:8px;padding:4px 8px;background:#fff">전체/해제</button>
+        </div>
+        <div id="ieMarkets" class="chips" style="margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+  <div class="dlg-foot">
+    <button id="ieCancel" type="button">취소</button>
+    <button id="ieSave" class="primary" type="button">저장</button>
+  </div>
+</dialog>
+
+<script>
+  // ===== 로컬 스토리지 전용 상태 =====
+  const CACHE_KEY='groceries.cache.local.v1';
+  let data={ markets:[], items:[], updatedAt: Date.now() };
+  let dirty=false; let itemFilter='';
+  const norm = s => String(s||'').trim().toLowerCase();
+
+  const makeId=()=> (crypto.randomUUID?.()||(Date.now().toString(36)+Math.random().toString(36).slice(2)));
+  function readCache(){ try{ const r=localStorage.getItem(CACHE_KEY); return r?JSON.parse(r):null; }catch{return null;} }
+  function writeCache(o){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify(o)); }catch{} }
+  function markDirty(){ dirty=true; }
+
+  const marketInput=document.getElementById('marketInput');
+  const addMarketBtn=document.getElementById('addMarketBtn');
+  const marketList=document.getElementById('marketList');
+  const itemInput=document.getElementById('itemInput');
+  const addItemBtn=document.getElementById('addItemBtn');
+  const marketChipsAdd=document.getElementById('marketChipsAdd');
+  const itemsEl=document.getElementById('items');
+  const tpl=document.getElementById('itemTpl');
+
+  const dlg=document.getElementById('itemEditor');
+  const ieName=document.getElementById('ieName');
+  const ieMarkets=document.getElementById('ieMarkets');
+  const ieSave=document.getElementById('ieSave');
+  const ieCancel=document.getElementById('ieCancel');
+  const ieSelectAll=document.getElementById('ieSelectAll');
+
+  const saveBtn=document.getElementById('saveBtn');
+  const exportBtn=document.getElementById('exportBtn');
+  const importBtn=document.getElementById('importBtn');
+  const importFile=document.getElementById('importFile');
+
+  function renderMarkets(){
+    marketList.innerHTML='';
+    (data.markets||[]).forEach(m=>{
+      const chip=document.createElement('span'); chip.className='chip'; chip.textContent=m;
+      const del=document.createElement('button'); del.textContent='🗑'; del.style.border='1px solid #e5e7eb'; del.style.borderRadius='8px'; del.style.padding='2px 6px';
+      del.onclick=()=>{
+        const cnt=(data.items||[]).filter(it=>(it.markets||[]).includes(m)).length;
+        if(!confirm(`"${m}" 마켓을 삭제할까요? (${cnt}개 항목에서 제거됨)`)) return;
+        data.markets=data.markets.filter(x=>x!==m);
+        (data.items||[]).forEach(it=> it.markets=(it.markets||[]).filter(x=>x!==m));
+        data.updatedAt=Date.now(); markDirty(); writeCache(data); renderMarkets(); renderAddChips(); renderItems();
+      };
+      chip.onclick=()=>{
+        const old=m;
+        const nv=prompt('마켓 이름 변경', old);
+        if(!nv||!nv.trim()||nv===old) return;
+        if(data.markets.some(x=>x.toLowerCase()===nv.toLowerCase())){ alert('이미 존재하는 이름'); return; }
+        data.markets=data.markets.map(x=>x===old?nv.trim():x);
+        (data.items||[]).forEach(it=> it.markets=(it.markets||[]).map(x=>x===old?nv.trim():x));
+        data.updatedAt=Date.now(); markDirty(); writeCache(data); renderMarkets(); renderAddChips(); renderItems();
+      };
+      const wrap=document.createElement('span'); wrap.className='row'; wrap.style.gap='6px';
+      wrap.appendChild(chip); wrap.appendChild(del); marketList.appendChild(wrap);
+    });
+  }
+  function renderAddChips(){
+    marketChipsAdd.innerHTML='';
+    (data.markets||[]).forEach(m=>{
+      const lab=document.createElement('label'); lab.className='chip';
+      lab.innerHTML=`<input type="checkbox" style="display:none"><span>${m}</span>`;
+      lab.onclick=(e)=>{ if(e.target.tagName!=='INPUT') e.preventDefault(); const inp=lab.querySelector('input'); inp.checked=!inp.checked; lab.classList.toggle('active', inp.checked); };
+      marketChipsAdd.appendChild(lab);
+    });
+  }
+  function renderItems(){
+    const q=(itemFilter||'').trim().toLowerCase();
+    itemsEl.innerHTML='';
+    const escapeHtml=s=> s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m]));
+    const highlight=(name,q)=>{ if(!q) return escapeHtml(name); const idx=name.toLowerCase().indexOf(q); if(idx===-1) return escapeHtml(name);
+      const a=escapeHtml(name.slice(0,idx)), b=escapeHtml(name.slice(idx,idx+q.length)), c=escapeHtml(name.slice(idx+q.length)); return `${a}<mark>${b}</mark>${c}`; };
+
+    (data.items||[]).forEach((it, idxOriginal)=>{
+      if(q && !it.name.toLowerCase().includes(q)) return;
+      const row=tpl.content.cloneNode(true);
+      row.querySelector('.name').innerHTML=highlight(it.name,q);
+      const badges=row.querySelector('.badges'); badges.innerHTML='';
+      (it.markets||[]).forEach(m=>{ const b=document.createElement('span'); b.className='badge'; b.textContent=m; badges.appendChild(b); });
+      row.querySelector('.edit').onclick=()=> openItemEditor(idxOriginal);
+      row.querySelector('.del').onclick=()=>{
+        if(confirm(`"${it.name}" 삭제할까요?`)){
+          data.items.splice(idxOriginal,1);
+          data.updatedAt=Date.now(); markDirty(); writeCache(data); renderItems();
+        }
+      };
+      itemsEl.appendChild(row);
+    });
+  }
+  function renderAll(){ renderMarkets(); renderAddChips(); renderItems(); }
+
+  addMarketBtn.onclick=()=>{
+    const name=(marketInput.value||'').trim(); if(!name) return;
+    if((data.markets||[]).some(x=>x.toLowerCase()===name.toLowerCase())){ alert('이미 존재하는 마켓'); return; }
+    data.markets.push(name);
+    marketInput.value='';
+    data.updatedAt=Date.now(); markDirty(); writeCache(data); renderMarkets(); renderAddChips();
+  };
+  itemInput.addEventListener('input', ()=>{ itemFilter=itemInput.value||''; renderItems(); });
+  addItemBtn.onclick=()=>{
+    const raw=(itemInput.value||''); const names=raw.split(',').map(s=>s.trim()).filter(Boolean); if(!names.length) return;
+    const mkts=Array.from(marketChipsAdd.querySelectorAll('label.chip'))
+      .filter(l=>l.querySelector('input').checked).map(l=>l.textContent.trim());
+    if(names.length===1){
+      const n=names[0]; const idx=(data.items||[]).findIndex(x=>x.name.toLowerCase()===n.toLowerCase());
+      if(idx>=0){ if(confirm(`"${n}" 항목이 이미 있습니다.\n편집하시겠습니까?`)) openItemEditor(idx); return; }
+    }
+    let added=0;
+    names.forEach(n=>{
+      const exists=data.items.some(x=>x.name.toLowerCase()===n.toLowerCase());
+      if(!exists){ data.items.push({id:makeId(), name:n, markets:mkts.slice(), checked:false, t:Date.now()}); added++; }
+    });
+    if(added===0 && names.length>1){ alert('모두 기존에 있는 항목이에요. (새로 추가된 항목 없음)'); }
+    itemInput.value=''; itemFilter=''; marketChipsAdd.querySelectorAll('.chip').forEach(ch=>{ ch.classList.remove('active'); ch.querySelector('input').checked=false; });
+    if(added>0){ data.updatedAt=Date.now(); markDirty(); writeCache(data); }
+    renderItems();
+  };
+
+  const ieBuildChips=(current)=>{
+    ieMarkets.innerHTML='';
+    (data.markets||[]).forEach(m=>{
+      const lab=document.createElement('label'); lab.className='chip';
+      const checked=(current||[]).includes(m);
+      lab.innerHTML=`<input type="checkbox" ${checked?'checked':''} style="display:none"><span>${m}</span>`;
+      if(checked) lab.classList.add('active');
+      lab.onclick=(e)=>{ if(e.target.tagName!=='INPUT') e.preventDefault(); const inp=lab.querySelector('input'); inp.checked=!inp.checked; lab.classList.toggle('active', inp.checked); };
+      ieMarkets.appendChild(lab);
+    });
+  };
+  const ieSelected=()=> Array.from(ieMarkets.querySelectorAll('label.chip')).filter(l=>l.querySelector('input').checked).map(l=>l.textContent.trim());
+
+  let editingIndex=-1;
+  function openItemEditor(idx){
+    editingIndex=idx; const it=data.items[idx];
+    ieName.value=it.name; ieBuildChips(it.markets||[]); dlg.showModal();
+  }
+  ieCancel.onclick=()=> dlg.close();
+  ieSelectAll.onclick=()=>{
+    const labels=Array.from(ieMarkets.querySelectorAll('label.chip'));
+    const allChecked=labels.every(l=>l.querySelector('input').checked);
+    labels.forEach(l=>{ const inp=l.querySelector('input'); inp.checked=!allChecked; l.classList.toggle('active', inp.checked); });
+  };
+  ieSave.onclick=()=>{
+    if(editingIndex<0) return;
+    const name=(ieName.value||'').trim(); if(!name){ alert('이름을 입력하세요.'); return; }
+    const dup=data.items.some((x,i)=> i!==editingIndex && x.name.toLowerCase()===name.toLowerCase()); if(dup){ alert('같은 이름의 항목이 이미 있습니다.'); return; }
+    const it=data.items[editingIndex];
+    it.name=name; it.markets=ieSelected(); it.t=Date.now();
+    data.updatedAt=Date.now(); markDirty(); writeCache(data); renderItems(); dlg.close();
+  };
+
+  function handleBeforeUnload(e){ if(dirty){ e.preventDefault(); e.returnValue=''; } }
+  window.addEventListener('beforeunload', handleBeforeUnload);
+
+  document.getElementById('saveBtn').addEventListener('click', ()=>{
+    try{
+      data.updatedAt=Date.now(); writeCache(data);
+      dirty=false; window.removeEventListener('beforeunload', handleBeforeUnload);
+      location.href='index.html';
+    }catch(e){ alert('저장 중 오류가 발생했습니다.'); }
+  });
+
+  // ===== 내보내기/가져오기 =====
+  exportBtn.addEventListener('click', ()=>{
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.download=`jjoondocart-${new Date().toISOString().slice(0,10)}.json`;
+    a.href=URL.createObjectURL(blob); a.click(); URL.revokeObjectURL(a.href);
+  });
+  importBtn.addEventListener('click', ()=> importFile.click());
+  importFile.addEventListener('change', async ()=>{
+    const f=importFile.files?.[0]; if(!f) return;
+    try{
+      const text=await f.text(); const j=JSON.parse(text);
+      if(!Array.isArray(j.items) || !Array.isArray(j.markets)) throw new Error('형식 오류');
+      data=j; data.updatedAt=Date.now(); writeCache(data); renderAll(); alert('가져오기 완료');
+    }catch(e){ alert('가져오기 실패: '+(e&&e.message?e.message:'unknown')); }
+    finally{ importFile.value=''; }
+  });
+
+  (function boot(){
+    const cached=readCache();
+    if(cached){ data=cached; }
+    renderAll();
+  })();
+</script>
+</body>
+</html>
