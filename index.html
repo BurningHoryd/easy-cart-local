@@ -1,22 +1,22 @@
 <!-- =========================
-쭌또카트 (로컬 전용)
-- 동기화/비밀번호 제거
-- localStorage만 사용
-- 파일: index.html
+Easy Cart (Local Only)
+- Sync/Password removed
+- Uses only localStorage
+- File: index.html
 ========================= -->
 
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>쭌또카트</title>
+<title>Easy Cart</title>
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" sizes="192x192" href="icon.png">
 <meta name="theme-color" content="#166534">
 <style>
 *{box-sizing:border-box}
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Apple SD Gothic Neo,'Malgun Gothic',sans-serif;margin:0;background:#f5f6f8;color:#111}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,sans-serif;margin:0;background:#f5f6f8;color:#111}
 header.card{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid #e5e7eb}
 .wrap{max-width:960px;margin:0 auto;padding:12px}
 .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:12px;margin:12px 0}
@@ -45,13 +45,13 @@ a.edit{font-size:12px;border:1px solid #d1d5db;border-radius:10px;padding:6px 10
     <div class="row">
       <div id="marketChips" class="row" style="gap:6px;flex-wrap:wrap"></div>
 
-      <!-- 쇼핑 모드 라벨 포함 -->
+      <!-- Shopping mode label -->
       <div class="row" style="align-items:center;gap:6px">
-        <div id="shoppingToggle" class="toggle" title="ON=사야 할 것만 보기"></div>
-        <span class="muted">쇼핑 모드</span>
+        <div id="shoppingToggle" class="toggle" title="ON = show only items to buy"></div>
+        <span class="muted">Shopping Mode</span>
       </div>
 
-      <a href="edit.html" class="right edit">편집</a>
+      <a href="edit.html" class="right edit">Edit</a>
     </div>
   </div>
 </header>
@@ -75,7 +75,7 @@ a.edit{font-size:12px;border:1px solid #d1d5db;border-radius:10px;padding:6px 10
 </template>
 
 <script>
-  // ===== 로컬 스토리지 전용 상태 =====
+  // ===== Local storage only =====
   const CACHE_KEY = 'groceries.cache.local.v1';
   const list = document.getElementById('list');
   const tpl = document.getElementById('itemTpl');
@@ -109,7 +109,7 @@ a.edit{font-size:12px;border:1px solid #d1d5db;border-radius:10px;padding:6px 10
       };
       return b;
     };
-    marketChips.appendChild(mk('모든 마켓','ALL',true));
+    marketChips.appendChild(mk('All Markets','ALL',true));
     (data.markets||[]).forEach(m=> marketChips.appendChild(mk(m,m)));
   }
 
