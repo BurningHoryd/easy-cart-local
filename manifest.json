@@ -1,0 +1,12 @@
+{
+  "name": "Easy Cart",
+  "short_name": "Easy Cart",
+  "start_url": "/easy-cart-local/",
+  "scope": "/easy-cart-local/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#166534",
+  "icons": [
+    { "src": "icon.png", "sizes": "192x192", "type": "image/png" }
+  ]
+}

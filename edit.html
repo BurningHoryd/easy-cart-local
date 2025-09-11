@@ -347,6 +347,11 @@ Easy Cart (Local Only)
     if(cached){ data = cached; }
     renderAll();
   })();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/easy-cart-local/sw.js').catch(console.error);
+  }
+
 </script>
 </body>
 </html>
